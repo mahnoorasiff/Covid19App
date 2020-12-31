@@ -1,5 +1,5 @@
 import * as React from 'react';
-import {   StyleSheet, Button, View, Text, ActivityIndicator, Image, AsyncStorageStatic} from 'react-native';
+import {   StyleSheet, Button, View, Text, ActivityIndicator, Image, AsyncStorage, ScrollView} from 'react-native';
 import { createDrawerNavigator } from '@react-navigation/drawer';
 import { NavigationContainer } from '@react-navigation/native';
 import { FlatList, TouchableOpacity } from 'react-native-gesture-handler';
@@ -111,10 +111,15 @@ class CountryStats extends React.Component {
 
    storeData = async (value1, value2, value3) => {
     try {
-      const save1 = JSON.stringify(value)
-      const save2 = JSON.stringify(value)
-      const save3 = JSON.stringify(value)
-      await AsyncStorage.setItem('@storage_Key', save1, save2, save3)
+      const save1 = JSON.stringify(value1)
+      console.log("saving "+ save1)
+      const save2 = JSON.stringify(value2)
+      console.log("saving"+ save2)
+      const save3 = JSON.stringify(value3)
+      console.log("saving"+ save3)
+      await AsyncStorage.setItem('@storage_Key1', save1)
+      await AsyncStorage.setItem('@storage_Key2', save2)
+      await AsyncStorage.setItem('@storage_Key3', save3)
     } catch (e) {
       // saving error
     }
@@ -160,9 +165,9 @@ class CountryStats extends React.Component {
                   {item.country}
                 </Text>
                    
-                <TouchableOpacity activeOpacity={0.6}>
+                <TouchableOpacity onPress={()=>this.storeData(item.country, item.cases, item.deaths)} activeOpacity={0.6}>
                 <View >
-              <FontAwesome onPress={()=>this.storeData(item.country, item.cases, item.deaths)} name="heart" size={30} color="pink"/>
+              <FontAwesome  name="heart" size={30} color="pink"/>
               </View>
             </TouchableOpacity>
             
@@ -246,34 +251,54 @@ class FavCountry extends React.Component {
     super(props);
     this.state = { isLoading: true,
     saved:[]
+     
      };
     
   }
 
    getData = async () => {
     try {
-      const jsonValue = await AsyncStorage.getItem('@storage_Key')
-      return jsonValue != null ? JSON.parse(jsonValue) : null;
+      var value1 = await AsyncStorage.getItem('@storage_Key1')
+    var value2 = await AsyncStorage.getItem('@storage_Key2')
+    var value3 = await AsyncStorage.getItem('@storage_Key3')
+console.log("loading"+ value1);
+      value1=  JSON.parse(value1) 
+       value2 = JSON.parse(value2) 
+       value3 =  JSON.parse(value3) 
+      const result="Country: "+ value1 + "Confirmed:" + value2 + "Recovered:" + value3;
+      console.log( result);
+      return(
+      this.setState({saved:[...this.state.saved,{key:Math.random.toString(), data:result}]})
+      )
     } catch(e) {
       // error reading value
     }
   }
 
 
-
-
 render(){
-return{
-
+return(
+  <View>
+  show()=>{this.getData()}
+<ScrollView>
+       {this.state.saved.map((item) => (
+                    <View style={{flexDirection:"row"}}>
+                    <Text style= {{fontSize:23}}
+                      >
+                      {item.data}
+                    </Text>
+                  
+                </View>   
+))
 }
-
+</ScrollView>
+</View>
+)
 }
 }
-
-
-
+                       
 const Stack = createStackNavigator();
-const StackNavigator = () => {
+const StackNavigator1 = () => {
   return (
     <Stack.Navigator
       initialRouteName={"WorldStats"}
@@ -310,9 +335,18 @@ const StackNavigator = () => {
           })
         }
       />
+ </Stack.Navigator>
+  )
+}
 
+
+const StackNavigator2 = () => {
+  return (
+    <Stack.Navigator
+      initialRouteName={"FavCountry"}
+    >
 <Stack.Screen
-        name="FavCountry"
+        name="Favourite Countries"
         component={FavCountry}
         options={({ navigation }) => ({
           title: 'Favourite Countries',
@@ -326,14 +360,14 @@ const StackNavigator = () => {
           </View>
           })
         }
-      />    
-
+      /> 
+ </Stack.Navigator>
+  )
+}
 
 
       
-    </Stack.Navigator>
-  )
-}
+   
 
 const Drawer = createDrawerNavigator();
 
@@ -346,9 +380,9 @@ export default function App() {
 
         <Drawer.Screen name="World Statistics" component={WorldStats}
           />
-        <Drawer.Screen name="Country Statistics" component={StackNavigator} />
+        <Drawer.Screen name="Country Statistics" component={StackNavigator1} />
         
-        <Drawer.Screen name="FavCountry" component={FavCountry} />
+        <Drawer.Screen name="Favourite Countries" component={StackNavigator2} />
       </Drawer.Navigator>
       
     </NavigationContainer>
@@ -414,7 +448,7 @@ card4:{
     borderRadius: 6,
     marginTop: '5%',
     justifyContent:"center",
-  }
+}
 
 
 
